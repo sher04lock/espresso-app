@@ -1,19 +1,28 @@
 node() {
 
-  try {
-    def imageTag = "app-${env.BRANCH}:$BUILD_NUMBER" 
+    def imageTag = "espresso-app:$BUILD_NUMBER" 
 
+  try {
     stage('Checkout') {
       checkout scm
     }
 
     stage('Docker image build') {
-      bat "docker build -t ${imageTag} ."
+      try {
+      bat "docker build -t ${imageTag} ."  // replace bat with sh for unix
+      } catch (err) {
+        "image build failed"
+        currentBuild.result = "FAILURE"
+      }
     }
 
     stage('App build') {
-      bat "docker build -t ${imageTag} ."
-      bat "docker run -it --rm -v ${PWD}:/application ${imageTag}"
+      try {
+      bat "docker run -it --rm -v \"${WORKSPACE}\":/application ${imageTag}"
+      } catch (err) {
+        echo "app build failed"
+        currentBuild.result = "FAILURE"
+      }
     }
   }
   catch (err) {
@@ -22,8 +31,7 @@ node() {
   }
   finally {
         stage('Cleanup') {
-            sh "docker rm -f ${imageTag}"
-            sh "docker rmi ${imageTag}"
+            bat "docker rmi ${imageTag}"
         }      
   }
 }
