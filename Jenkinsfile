@@ -3,6 +3,10 @@ node() {
   try {
     def imageTag = "app-${env.BRANCH}:$BUILD_NUMBER" 
 
+    stage('Checkout') {
+      checkout scm
+    }
+
     stage('Docker image build') {
       bat "docker build -t ${imageTag} ."
     }
