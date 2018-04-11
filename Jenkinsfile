@@ -16,15 +16,19 @@ node() {
       }
     }
 
-    stage('App build') {
-      try {
-      bat "docker run -it --rm -v \"${WORKSPACE}\":/application ${imageTag}"
-      } catch (err) {
-        echo "app build failed"
-        currentBuild.result = "FAILURE"
+    if (${SHOULD_RUN_TESTS}) {
+      stage('App build') {
+        try {
+        bat "docker run -it --rm -v \"${WORKSPACE}\":/application ${imageTag}"
+        } catch (err) {
+          echo "app build failed"
+          currentBuild.result = "FAILURE"
+        }
       }
     }
   }
+
+
   catch (err) {
     currentBuild.result = "FAILURE"
     throw err
